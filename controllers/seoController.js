@@ -1,5 +1,5 @@
 const express = require('express');
-const app = express();
+const router = express.Router();
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 
@@ -16,7 +16,7 @@ db.run(`
 `);
 
 // Define a route to fetch SEO settings
-app.get('/seoSettings', (req, res) => {
+router.get('/seoSettings', (req, res) => {
   // Logic to fetch SEO settings from the database
   db.get('SELECT * FROM seo_settings', (err, row) => {
     if (err) {
@@ -29,7 +29,7 @@ app.get('/seoSettings', (req, res) => {
 });
 
 // Define a route to update SEO settings
-app.put('/seoSettings', (req, res) => {
+router.put('/seoSettings', (req, res) => {
   const { title, description } = req.body;
   db.run(
     'UPDATE seo_settings SET title = ?, description = ? WHERE id = 1', // Assuming you have a single row in the table
@@ -45,4 +45,4 @@ app.put('/seoSettings', (req, res) => {
   );
 });
 
-module.exports = app;
+module.exports = router;

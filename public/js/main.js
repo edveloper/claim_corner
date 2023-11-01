@@ -91,3 +91,54 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   })
   .catch(error => console.error('Error fetching recent posts:', error));
+
+  // Code to populate the blog posts section
+function populateBlogPosts(posts) {
+  const blogPostsSection = document.getElementById('blog-posts-section');
+
+  posts.forEach(post => {
+    const blogPost = document.createElement('div');
+    blogPost.classList.add('blog-post');
+
+    const postImage = document.createElement('div');
+    postImage.classList.add('post-image');
+    const image = document.createElement('img');
+    image.setAttribute('src', post.image);
+    image.setAttribute('alt', post.title);
+    postImage.appendChild(image);
+
+    const postContent = document.createElement('div');
+    postContent.classList.add('post-content');
+    const postTitle = document.createElement('h2');
+    postTitle.textContent = post.title;
+    const postText = document.createElement('p');
+    postText.textContent = post.content.substring(0, 100) + '...'; // Adjust the character limit as needed
+    const readMoreLink = document.createElement('a');
+    readMoreLink.setAttribute('href', `/blog/${post.id}`); // Adjust the link accordingly
+    readMoreLink.classList.add('read-more');
+    readMoreLink.textContent = 'Read More';
+
+    postContent.appendChild(postTitle);
+    postContent.appendChild(postText);
+    postContent.appendChild(readMoreLink);
+
+    blogPost.appendChild(postImage);
+    blogPost.appendChild(postContent);
+
+    blogPostsSection.appendChild(blogPost);
+  });
+}
+
+// Simulated data to demonstrate the blog post population
+const samplePosts = [
+  {
+    id: 1,
+    title: "The Future of Insurance: Trends to Watch",
+    content: "Discover the latest trends shaping the insurance industry and what they mean for you. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+    image: "assets/images/photo-1633158829585-23ba8f7c8caf.jpeg"
+  },
+  // Add more sample posts here
+];
+
+// Call the function to populate the blog posts section
+populateBlogPosts(samplePosts);

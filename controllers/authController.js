@@ -1,7 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const app = express();
-const path = require('path');
+const router = express.Router();
 
 // Temporary storage for authorized users
 let authorizedUsers = {
@@ -12,7 +11,7 @@ let authorizedUsers = {
 };
 
 // Login route
-app.post('/login', (req, res) => {
+router.post('/login', (req, res) => {
   const { username, password } = req.body;
   const user = authorizedUsers[username];
   if (!user || !bcrypt.compareSync(password, user.password)) {
@@ -23,17 +22,17 @@ app.post('/login', (req, res) => {
 });
 
 // Logout route
-app.get('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
 });
 
 // Create new user route
-app.post('/createUser', (req, res) => {
+router.post('/createUser', (req, res) => {
   const { username, password } = req.body;
   const hashedPassword = bcrypt.hashSync(password, 10);
   authorizedUsers[username] = { password: hashedPassword };
   res.status(200).send('User created successfully');
 });
 
-module.exports = app;
+module.exports = router;
