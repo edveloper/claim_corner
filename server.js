@@ -12,7 +12,8 @@ const fs = require('fs');
 app.use(express.static(path.join(__dirname, '')));
 
 // Check file path and permissions
-const dbPath = path.join(__dirname, 'db', 'claimcorner.db');
+const dbPath = path.resolve(__dirname, 'db', 'claimcorner.db');
+console.log('Absolute Path to Database:', dbPath);
 
 fs.access(dbPath, fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK, (err) => {
   if (err) {
