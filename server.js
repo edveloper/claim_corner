@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
-const sqlite3 = require('sqlite3').verbose();
+const Datastore = require('nedb');
 const blogRouter = require('./controllers/blogController');
 const authRouter = require('./controllers/authController');
 const seoRouter = require('./controllers/seoController');
@@ -12,7 +12,7 @@ const fs = require('fs');
 app.use(express.static(path.join(__dirname, '')));
 
 // Check file path and permissions
-const dbPath = path.resolve(__dirname, 'db', 'claimcorner.db');
+const dbPath = path.resolve(__dirname, 'db', 'nedb.db');
 console.log('Absolute Path to Database:', dbPath);
 
 fs.access(dbPath, fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK, (err) => {
@@ -24,32 +24,7 @@ fs.access(dbPath, fs.constants.F_OK | fs.constants.R_OK | fs.constants.W_OK, (er
 });
 
 // Create db
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error(err.message);
-  } else {
-    console.log('Connected to the claimcorner database.');
-
-    // Create tables if they don't exist
-    db.run(`
-      CREATE TABLE IF NOT EXISTS blog_posts (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        content TEXT NOT NULL,
-        image TEXT,
-        category TEXT,
-        date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
-
-    db.run(`
-      CREATE TABLE IF NOT EXISTS subscribers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT NOT NULL
-      )
-    `);
-  }
-});
+const db = new Datastore({ filename: dbPath, autoload: true });
 
 // Mount the routers
 app.use('/posts', blogRouter);
@@ -59,12 +34,12 @@ app.use('/seo', seoRouter);
 // Endpoint for fetching analytics data
 app.get('/analytics', (req, res) => {
   // Logic to fetch and process analytics data from the database
-  db.all('SELECT * FROM analyticsData', (err, rows) => {
+  db.find({ type: 'analyticsData' }, (err, docs) => {
     if (err) {
-      console.error(err.message);
+      console.error(err);
       res.status(500).send('Server error');
     } else {
-      res.json(rows);
+      res.json(docs);
     }
   });
 });
@@ -72,12 +47,12 @@ app.get('/analytics', (req, res) => {
 // Endpoint for fetching subscriber data
 app.get('/subscribers', (req, res) => {
   // Logic to fetch and process subscriber data from the database
-  db.all('SELECT * FROM subscribers', (err, rows) => {
+  db.find({ type: 'subscribers' }, (err, docs) => {
     if (err) {
-      console.error(err.message);
+      console.error(err);
       res.status(500).send('Server error');
     } else {
-      res.json(rows);
+      res.json(docs);
     }
   });
 });

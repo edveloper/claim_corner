@@ -1,38 +1,33 @@
 const express = require('express');
 const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
+const Datastore = require('nedb');
 const router = express.Router();
 
-
 // Connect to the database
-const db = new sqlite3.Database(path.join(__dirname, 'db', 'claimcorner.db'));
+const db = new Datastore({ filename: path.join(__dirname, '..', 'db', 'nedb.db'), autoload: true });
 
 // Create a new blog post
 router.post('/posts', (req, res) => {
   const { title, content, image, category } = req.body;
   const date = new Date().toISOString();
-  db.run(
-    'INSERT INTO blog_posts (title, content, image, category, date) VALUES (?, ?, ?, ?, ?)',
-    [title, content, image, category, date],
-    (err) => {
-      if (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
-      } else {
-        res.status(200).send('Blog post created successfully');
-      }
+  db.insert({ title, content, image, category, date, type: 'blog_posts' }, (err, newDoc) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send('Server error');
+    } else {
+      res.status(200).send('Blog post created successfully');
     }
-  );
+  });
 });
 
 // Get all blog posts
 router.get('/posts', (req, res) => {
-  db.all('SELECT * FROM blog_posts', (err, rows) => {
+  db.find({ type: 'blog_posts' }, (err, docs) => {
     if (err) {
-      console.error(err.message);
+      console.error(err);
       res.status(500).send('Server error');
     } else {
-      res.status(200).json(rows);
+      res.status(200).json(docs);
     }
   });
 });
@@ -40,60 +35,18 @@ router.get('/posts', (req, res) => {
 // Get a single blog post
 router.get('/posts/:id', (req, res) => {
   const { id } = req.params;
-  db.get('SELECT * FROM blog_posts WHERE id = ?', [id], (err, row) => {
+  db.findOne({ _id: id, type: 'blog_posts' }, (err, doc) => {
     if (err) {
-      console.error(err.message);
+      console.error(err);
       res.status(500).send('Server error');
-    } else if (!row) {
+    } else if (!doc) {
       res.status(404).send('Blog post not found');
     } else {
-      res.status(200).json(row);
+      res.status(200).json(doc);
     }
   });
 });
 
-// Get the four most recent blog posts
-router.get('/recent-posts', (req, res) => {
-  db.all('SELECT * FROM blog_posts ORDER BY date DESC LIMIT 4', (err, rows) => {
-    if (err) {
-      console.error(err.message);
-      res.status(500).send('Server error');
-    } else {
-      res.status(200).json(rows);
-    }
-  });
-});
-
-// Update a blog post
-router.put('/posts/:id', (req, res) => {
-  const { title, content, image, category } = req.body;
-  const { id } = req.params;
-  const date = new Date().toISOString();
-  db.run(
-    'UPDATE blog_posts SET title = ?, content = ?, image = ?, category = ?, date = ? WHERE id = ?',
-    [title, content, image, category, date, id],
-    (err) => {
-      if (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
-      } else {
-        res.status(200).send('Blog post updated successfully');
-      }
-    }
-  );
-});
-
-// Delete a blog post
-router.delete('/posts/:id', (req, res) => {
-  const { id } = req.params;
-  db.run('DELETE FROM blog_posts WHERE id = ?', [id], (err) => {
-    if (err) {
-      console.error(err.message);
-      res.status(500).send('Server error');
-    } else {
-      res.status(200).send('Blog post deleted successfully');
-    }
-  });
-});
+// Add other routes as needed
 
 module.exports = router;
